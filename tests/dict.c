@@ -1,16 +1,15 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "sources/dictionary.h"
-#include "sources/cobject.h"
+#include "../src/dictionary.h"
 
 void *strIdentity(void *p) { return p; }
 
 int main(int argc, char **argv, char **envp) {
 	Dictionary *d = CO_Alloc(Dictionary);
-	d->retainer = (DictionaryRetainer)strdup;
-	d->releaser = (DictionaryReleaser)free;
-	//d->descriptor = (DictionaryDescriptor)strIdentity;
+	d->retainer = (ContainerRetainer)strdup;
+	d->releaser = (ContainerReleaser)free;
+	//d->descriptor = (ContainerDescriptor)strIdentity;
 
 	CO_Call(d, set, "foo", "hello world");
 	CO_Call(d, set, "foo2", "hello world2");
