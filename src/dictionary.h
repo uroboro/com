@@ -2,13 +2,7 @@
 #define DICTIONARY_H
 
 #include "cobject.h"
-
-typedef void * Type;
-typedef char String;
-
-typedef Type (*DictionaryRetainer)(Type t);
-typedef void (*DictionaryReleaser)(Type t);
-typedef String *(*DictionaryDescriptor)(Type t);
+#include "container.h"
 
 CO_Struct(Dictionary) {
 	int size;			/* size of the pointer table */
