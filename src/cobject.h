@@ -8,7 +8,7 @@
 
 #define SWAP(a,b)				({ typeof(a) c = a; a = b; b = c; })
 
-#define CO_Enum(name)			typedef enum name name; enum namec
+#define CO_Enum(name)			typedef enum name name; enum name
 #define CO_Struct(name) 		typedef struct name name; struct name
 
 #define CO_New(T, s)			(T *)calloc((s), sizeof(T))
