@@ -1,7 +1,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "cobject.h"
 #include "dictionary.h"
 
 static unsigned long hash_function(const char *str) {
@@ -68,7 +67,7 @@ static Dictionary *DictionaryAddPair(Dictionary *d, KVPair *e);
 
 static String *DictionaryDescription(Dictionary *d);
 
-static void DictionaryDelete(Dictionary *d);
+static void DictionaryDealloc(Dictionary *d);
 
 static Dictionary *DictionaryAllocInternal(int size);
 static Dictionary *DictionaryGrowTable(Dictionary *d);
@@ -80,7 +79,7 @@ static KVPair *DictionaryGetInternal(Dictionary *d, const char *key) {
 	if (key == NULL || key[0] == 0) {
 		return NULL;
 	}
-	KVPair **table = (KVPair **)d->table;
+	KVPair **table = (KVPair **)d->data;
 	return table[hash_function(key) % d->size];
 }
 
@@ -114,7 +113,7 @@ static Dictionary *DictionaryUnset(Dictionary *d, const char *key) {
 	if (e) {
 		KVPairFree(e, d->releaser);
 		d->n--;
-		KVPair **table = (KVPair **)d->table;
+		KVPair **table = (KVPair **)d->data;
 		table[hash_function(key) % d->size] = NULL;
 	}
 
@@ -123,7 +122,7 @@ static Dictionary *DictionaryUnset(Dictionary *d, const char *key) {
 
 static Dictionary *DictionaryInsertPair(Dictionary *d, KVPair *e) {
 	if (e) {
-		KVPair **table = (KVPair **)d->table;
+		KVPair **table = (KVPair **)d->data;
 		table[hash_function(e->key) % d->size] = e;
 		d->n++;
 	}
@@ -152,7 +151,7 @@ static Dictionary *DictionaryAddPair(Dictionary *d, KVPair *e) {
 
 static String *DictionaryDescription(Dictionary *d) {
 	if (d) {
-		KVPair **table = (KVPair **)d->table;
+		KVPair **table = (KVPair **)d->data;
 		printf("%d pairs {\n", d->n);
 		for (ssize_t i = 0; i < d->size; i++) {
 			KVPair *e = table[i];
@@ -172,8 +171,8 @@ static Dictionary *DictionaryAllocInternal(int size) {
 	if (d) {
 		d->n = 0;
 		d->size = size;
-		d->table = CO_New(KVPair *, d->size);
-		if (d->table == NULL) {
+		d->data = CO_New(KVPair *, d->size);
+		if (d->data == NULL) {
 			CO_Free(d);
 			return NULL;
 		}
@@ -186,7 +185,7 @@ static Dictionary *DictionaryGrowTable(Dictionary *d) {
 	if (d) {
 		Dictionary *d2 = DictionaryAllocInternal(d->size * GROWTH_FACTOR);
 		if (d2 != NULL) {
-			KVPair **table = (KVPair **)d->table;
+			KVPair **table = (KVPair **)d->data;
 			for (size_t i = 0; i < d->size; i++) {
 				KVPair *e = table[i];
 				if (e) {
@@ -194,25 +193,25 @@ static Dictionary *DictionaryGrowTable(Dictionary *d) {
 				}
 			}
 
-			SWAP(d->table, d2->table);
+			SWAP(d->data, d2->data);
 			SWAP(d->size, d2->size);
 
-			DictionaryDelete(d2);
+			DictionaryDealloc(d2);
 		}
 	}
 	return d;
 }
 
-void DictionaryDelete(Dictionary *d) {
+void DictionaryDealloc(Dictionary *d) {
 	if (d) {
-		if (d->table) {
-			KVPair **table = (KVPair **)d->table;
+		if (d->data) {
+			KVPair **table = (KVPair **)d->data;
 			for (size_t i = 0; i < d->size; i++) {
 				KVPairFree(table[i], d->releaser);
 			}
 		}
 
-		CO_Free(d->table);
+		CO_Free(d->data);
 		CO_Free(d);
 	}
 }
@@ -223,7 +222,7 @@ Dictionary *DictionaryAlloc(void) {
 		d->get = DictionaryGet;
 		d->set = DictionarySet;
 		d->description = DictionaryDescription;
-		d->dealloc = DictionaryDelete;
+		d->dealloc = DictionaryDealloc;
 	}
 	return d;
 }
