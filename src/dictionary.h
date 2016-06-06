@@ -5,18 +5,20 @@
 #include "container.h"
 
 CO_Struct(Dictionary) {
-	int size;			/* size of the pointer table */
-	int n;				/* elements in the pointer table */
-	void *table;
+	void *data;
+	int size;			// size of data
+	int n;				// elements in data
 
-	Type (*get)(Dictionary *, const char *key);
+	// Member functions
+	Type (*retainer)(Type);
+	void (*releaser)(Type);
+	String *(*descriptor)(Type);
 
-	Dictionary *(*set)(Dictionary *, const char *key, Type t);
-	Type (*retainer)(Type t);
-	void (*releaser)(Type t);
+	Type (*get)(Dictionary *, const String *key);
+	Dictionary *(*set)(Dictionary *, const String *key, Type);
+	Dictionary *(*unset)(Dictionary *, const String *key);
 
 	String *(*description)(Dictionary *);
-	String *(*descriptor)(Type t);
 
 	void (*dealloc)(Dictionary *);
 };
