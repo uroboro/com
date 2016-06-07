@@ -54,14 +54,14 @@ static KVPair *KVPairCopy(KVPair *e, Type (*retainer)(Type t)) {
 
 }
 
-#define INITIAL_SIZE (60)
+#define INITIAL_SIZE (10)
 #define GROWTH_FACTOR (2)
 
 static KVPair *DictionaryGetInternal(Dictionary *d, const char *key);
 static Type DictionaryGet(Dictionary *d, const char *key);
 
 static Dictionary *DictionarySet(Dictionary *d, const char *key, Type value);
-static Dictionary *DictionaryUnset(Dictionary *d, const char *key);
+static Dictionary *DictionaryRemove(Dictionary *d, const char *key);
 static Dictionary *DictionaryInsertPair(Dictionary *d, KVPair *e);
 static Dictionary *DictionaryAddPair(Dictionary *d, KVPair *e);
 
@@ -100,7 +100,7 @@ static Dictionary *DictionarySet(Dictionary *d, const char *key, Type value) {
 	}
 
 	if (value == NULL) {
-		DictionaryUnset(d, key);
+		DictionaryRemove(d, key);
 	} else {
 		DictionaryAddPair(d, KVPairNew(key, value, d->retainer));
 	}
@@ -108,7 +108,7 @@ static Dictionary *DictionarySet(Dictionary *d, const char *key, Type value) {
 	return d;
 }
 
-static Dictionary *DictionaryUnset(Dictionary *d, const char *key) {
+static Dictionary *DictionaryRemove(Dictionary *d, const char *key) {
 	KVPair *e = DictionaryGetInternal(d, key);
 	if (e) {
 		KVPairFree(e, d->releaser);
@@ -221,6 +221,7 @@ Dictionary *DictionaryAlloc(void) {
 	if (d) {
 		d->get = DictionaryGet;
 		d->set = DictionarySet;
+		d->remove = DictionaryRemove;
 		d->description = DictionaryDescription;
 		d->dealloc = DictionaryDealloc;
 	}

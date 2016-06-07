@@ -16,7 +16,7 @@ CO_Struct(Dictionary) {
 
 	Type (*get)(Dictionary *, const String *key);
 	Dictionary *(*set)(Dictionary *, const String *key, Type);
-	Dictionary *(*unset)(Dictionary *, const String *key);
+	Dictionary *(*remove)(Dictionary *, const String *key);
 
 	String *(*description)(Dictionary *);
 
