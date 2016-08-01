@@ -10,7 +10,7 @@ static Type ArrayGet(Array * a, uint32_t index);
 static Array * ArraySet(Array * a, uint32_t index, Type value);
 static Array * ArrayRemove(Array * a, uint32_t index);
 
-static Array * ArrayPushFroward(Array * a, uint32_t index);
+static Array * ArrayPushForward(Array * a, uint32_t index);
 static Array * ArrayPushBack(Array * a, uint32_t index);
 
 static Array * ArrayPrepend(Array * a, Type value);
@@ -53,7 +53,6 @@ static Array * ArraySet(Array * a, uint32_t index, Type value) {
 				a->releaser(table[index]);
 			}
 			ArrayInsertRaw(a, index, value);
-			// table[index] = a->retainer ? a->retainer(value) : value;
 		}
 	}
 	return a;
@@ -68,18 +67,14 @@ static Array * ArrayRemove(Array * a, uint32_t index) {
 			}
 			void ** table = (void **)a->data;
 			table[index] = NULL;
+			ArrayPushForward(a, index);
 			a->n--;
-			while (table[index+1]) {
-				SWAP(table[index], table[index+1]);
-				index++;
-			}
-			if (0) ArrayPushFroward(a, 0);
 		}
 	}
 	return a;
 }
 
-static Array * ArrayPushFroward(Array * a, uint32_t index) {
+static Array * ArrayPushForward(Array * a, uint32_t index) {
 	if (a) {
 		if (index >= a->n) {
 			return a;
@@ -116,7 +111,7 @@ static Array * ArrayPrepend(Array * a, Type value) {
 			if (a->n == a->size) {
 				ArrayGrow(a);
 			}
-			ArrayInsert(a, 0, value);
+			ArrayInsert(a, 0, a->retainer ? a->retainer(value) : value);
 		}
 	}
 	return a;
@@ -127,7 +122,7 @@ static Array * ArrayAppend(Array * a, Type value) {
 			if (a->n == a->size) {
 				ArrayGrow(a);
 			}
-			ArrayInsert(a, a->n, value);
+			ArrayInsert(a, a->n, a->retainer ? a->retainer(value) : value);
 		}
 	}
 	return a;
@@ -138,8 +133,8 @@ static Array * ArrayInsert(Array * a, uint32_t index, Type value) {
 		if (index < a->size && value) {
 			ArrayPushBack(a, index);
 			printf("<%p>(%d) add <%s>\n", a, a->n, a->descriptor ? a->descriptor(value) : value);
-			ArraySet(a, index, value);
 			a->n++;
+			ArraySet(a, index, value);
 		}
 	}
 	return a;

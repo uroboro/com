@@ -17,12 +17,14 @@ int main(int argc, char **argv, char **envp) {
 	printf("set [1]\n");
 	CO_Call(object, set, 1, "hello 3");
 	printf("array[1]? %s\n", CO_Call(object, get, 1));
+	CO_Call(object, description);
 
 	printf("rem [1]\n");
 	CO_Call(object, remove, 1);
 	printf("array[1]? %s\n", CO_Call(object, get, 1));
+	CO_Call(object, description);
 
-	printf("set bar\n");
+	printf("add bar\n");
 	char v[] = { 64, 32, 87, 0, };
 	CO_Call(object, append, v);
 	CO_Call(object, description);
